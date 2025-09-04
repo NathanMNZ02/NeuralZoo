@@ -1,0 +1,4 @@
+# Ignora tutti i file .mat
+dataset_zoo/svhn/*.mat
+
+.env/
