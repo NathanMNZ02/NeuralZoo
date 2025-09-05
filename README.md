@@ -13,6 +13,7 @@ Ogni sotto-cartella contiene differenti implementazioni di una specifica tipolog
 Ogni sotto-cartella contiene la classe per implementare ed introdurre nel codice un determinato dataset ed eventuali funzioni per il preprocessing:
 - svhn, dataset rappresentante numeri civici, scaricabile dalla pagina: http://ufldl.stanford.edu/housenumbers/
 
+## Environment
 Puoi installare tutte le dipendenze con:
 
 ```bash
