@@ -1,10 +1,25 @@
+import os
+import urllib.request
+
 import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from scipy.io import loadmat
 
-def get_svhn_default_transform():
+def download(extra: bool = False):
+    train_url = "http://ufldl.stanford.edu/housenumbers/train_32x32.mat"
+    test_url = "http://ufldl.stanford.edu/housenumbers/test_32x32.mat"
+    extra_url = "http://ufldl.stanford.edu/housenumbers/extra_32x32.mat"
+    
+    out_dir = "dataset_zoo/svhn"
+    urllib.request.urlretrieve(train_url, os.path.join(out_dir, "train_32x32.mat"))
+    urllib.request.urlretrieve(test_url, os.path.join(out_dir, "test_32x32.mat"))
+    
+    if extra:
+        urllib.request.urlretrieve(extra_url, os.path.join(out_dir, "extra_32x32.mat"))
+
+def get_default_transform():
     """
     Ritorna le trasformazioni di default applicare sulle immagini e sulle annotazioni del dataset
     Street View House Number.
@@ -28,7 +43,7 @@ class StreetViewHouseNumbersDataset(torch.utils.data.Dataset):
     """
     def __init__(self, mat_file: str): 
         self.name = "Street View House Numbers"
-        self.default_transform = get_svhn_default_transform()  
+        self.default_transform = get_default_transform()  
 
         data = loadmat(mat_file)
         self.images = data['X'] # Le immagini sono in un array 4D (32, 32, 3, N)

@@ -144,6 +144,7 @@ class NumberClassifierTrainer:
         return loss, predicted_labels, true_labels
     
     def __print_epoch__(
+        self,
         epoch: int, 
         epochs: int, 
         train_loss: float, 
@@ -184,7 +185,7 @@ class NumberClassifierTrainer:
             dict[str, list]: resoconto dell'addestramento.
         """ 
         
-        best_valid_loss = 0.0
+        best_valid_loss = float('inf')
         for epoch in range(epochs):
 
             running_train_loss = 0.0
@@ -227,15 +228,15 @@ class NumberClassifierTrainer:
                         
             self.__print_epoch__(epoch, epochs, avg_train_loss, avg_valid_loss) 
             if avg_valid_loss < best_valid_loss:
-                self.best_valid_loss = avg_valid_loss
-                self.epochs_no_improve = 0
+                best_valid_loss = avg_valid_loss
+                epochs_no_improve = 0
                 torch.save(self.model.state_dict(), save_path)
                 print("  --> Model saved!")
             else:
-                self.epochs_no_improve += 1
-                print(f"No improvement for {self.epochs_no_improve} epochs.")
+                epochs_no_improve += 1
+                print(f"No improvement for {epochs_no_improve} epochs.")
                 
-            if self.epochs_no_improve >= patience:
+            if epochs_no_improve >= patience:
                 print(f"Early stopping triggered after {epoch+1} epochs.")
                 break
         
