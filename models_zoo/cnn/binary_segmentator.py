@@ -7,7 +7,7 @@ from torchvision.models import mobilenet_v3_large, MobileNet_V3_Large_Weights
 class PixelDecoder(nn.Module):
     def __init__(self, in_channels_list, hidden_dim: int = 128):
         super().__init__()
-        # conv separate per ogni feature map
+
         self.convs = nn.ModuleList([
             nn.Conv2d(c, hidden_dim, kernel_size=3, padding=1) for c in in_channels_list
         ])
@@ -30,6 +30,25 @@ class PixelDecoder(nn.Module):
         f = f1 + f2 + f3 + f4
         
         return f
+    
+class RefineHeadDilated(nn.Module):
+    def __init__(self, in_ch, out_ch=1):
+        super().__init__()
+        # Più convoluzioni con differenti dilatazioni
+        self.conv_d1 = nn.Conv2d(in_ch, 16, kernel_size=3, padding=1, dilation=1) 
+        self.conv_d2 = nn.Conv2d(in_ch, 16, kernel_size=3, padding=2, dilation=2)
+        self.conv_d3 = nn.Conv2d(in_ch, 16, kernel_size=3, padding=4, dilation=4)
+        
+        self.proj = nn.Conv2d(48, out_ch, kernel_size=1)
+
+    def forward(self, x):
+        d1 = F.relu(self.conv_d1(x))
+        d2 = F.relu(self.conv_d2(x))
+        d3 = F.relu(self.conv_d3(x))
+        out = torch.cat([d1, d2, d3], dim=1)
+        out = self.proj(out) # Proiettazione verso il canale di output
+        return torch.sigmoid(out)
+
     
 class BinarySegmentator(nn.Module): 
     def __init__(self):
@@ -73,19 +92,7 @@ class BinarySegmentator(nn.Module):
             nn.ReLU(),
         ) # Upsample x1.4142
         
-        # Refine head: attenzione ai canali in ingresso (32 + 32 = 64)
-        self.refine_head = nn.Sequential(
-            nn.Conv2d(8, 16, kernel_size=3, padding=2, dilation=2),  # receptive field più ampio
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-
-            nn.Conv2d(16, 16, kernel_size=3, padding=4, dilation=4), # ancora più ampio
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-
-            nn.Conv2d(16, 1, kernel_size=1),
-            nn.Sigmoid()
-        )
+        self.refine_head = RefineHeadDilated(8)
                 
     def get_size_in_mb(self):
         num_params = sum(p.numel() for p in self.parameters())
