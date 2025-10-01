@@ -140,3 +140,7 @@ print(b.forward(torch.randn(1, 3, 600, 600)).shape)
 # Loss:
 # Focal Loss --> concentra la loss sui pixel più complicati dove la rete sbaglia
 # Dice Loss --> misura la sovrapposizione tra predizione e target
+
+# Dataset:
+# iShape --> per imparare maschere in scene complesse.
+# Weizmann Horse / Oxford Pets --> buoni per imparare a segmentare contorni complessi e dettagli.
